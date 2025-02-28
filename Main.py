@@ -47,7 +47,7 @@ def convert_to_mp4(input_file):
         "-hide_banner",
         "-loglevel", "warning",
         "-i", input_file,
-        "-c:v", "libx264",
+        "-c:v", "hevc_nvenc",
         "-c:a", "aac",
         "-c:s", "mov_text",
         "-map", "0:v:0?",
