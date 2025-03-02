@@ -1,8 +1,8 @@
-import os
-import sys
-import subprocess
 import ftplib
-import configparser
+import os
+import subprocess
+import sys
+
 from dotenv import load_dotenv
 
 def get_subtitle_streams(input_file):
@@ -28,13 +28,20 @@ def get_subtitle_streams(input_file):
     return subtitle_streams
 
 
-def upload_to_ftp(local_file):
+def upload_to_ftp(local_file, pathUpload):
     load_dotenv("config.env")
 
     server = os.getenv("FTP_SERVER")
     username = os.getenv("FTP_USERNAME")
     password = os.getenv("FTP_PASSWORD")
-    remote_path = os.getenv("FTP_REMOTE_PATH")
+
+    path_mapping = {
+        "movie": os.getenv("FTP_REMOTE_PATH_MOVIE"),
+        "serie": os.getenv("FTP_REMOTE_PATH_SERIE"),
+        "documental": os.getenv("FTP_REMOTE_PATH_DOCUMENTAL"),
+        "vose": os.getenv("FTP_REMOTE_PATH_VOSE")
+    }
+    remote_path = path_mapping.get(pathUpload.lower())
 
     try:
         with ftplib.FTP(server) as ftp:
@@ -85,19 +92,30 @@ def convert_to_mp4(input_file):
     try:
         subprocess.run(command, check=True)
         print("Conversion successful!")
-
-        # Upload to my server using FTP
-        upload_to_ftp(output_file)
-
-        # Optionally delete the original file after successful conversion
-        # os.remove(input_file)
-        # print(f"Deleted file: {input_file}")
+        return output_file
 
     except subprocess.CalledProcessError as e:
         print(f"Error converting {input_file}:\n{e}")
+        return None
 
 
 def main():
+    isUpload = False
+    pathUpload = ""
+    isDelete = False
+
+    # Ask if you would like to upload the converted file to an FTP server
+
+    if True:
+        # If upload converted file -> Ask folder upload or file upload
+        if True:
+
+        # If upload converted file -> Ask delete original and converted file after successful upload
+        else:
+
+    else:
+    # If not upload converted file -> Ask delete the original file after successful conversion
+
     if len(sys.argv) < 2:
         folder = input("Enter the folder path to process: ")
     else:
@@ -114,7 +132,26 @@ def main():
             file_lower = file.lower()
             if file_lower.endswith(".avi") or file_lower.endswith(".mkv"):
                 input_path = os.path.join(root, file)
-                convert_to_mp4(input_path)
+                output_file = convert_to_mp4(input_path)
+
+                if output_file is not None:
+                    # Upload to my server using FTP
+                    if isUpload:
+                        upload_to_ftp(output_file, pathUpload)
+
+                        # Optionally delete the original file after successful conversion
+                        if isDelete:
+                            os.remove(file_lower)
+                            os.remove(input_file)
+                            print(f"Deleted file: {input_file}")
+
+                    else:
+                        # Optionally delete the original file after successful conversion
+                        if isDelete:
+                            os.remove(file_lower)
+                            print(f"Deleted file: {input_file}")
+                else:
+                    print(f"Error converting {input_path}")
 
 
 if __name__ == "__main__":
