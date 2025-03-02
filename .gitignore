@@ -160,4 +160,4 @@ cython_debug/
 #.idea/
 
 # File with user, pass and other secrets
-config.ini
+config.env
