@@ -1,6 +1,9 @@
 import os
 import sys
 import subprocess
+import ftplib
+import configparser
+from dotenv import load_dotenv
 
 def get_subtitle_streams(input_file):
     # Run ffmpeg to get the subtitle streams
@@ -20,13 +23,29 @@ def get_subtitle_streams(input_file):
             if len(parts) >= 3:
                 stream_info = parts[1].split("(")[-1].split(")")[0]
                 stream_id = parts[1].split("(")[0].replace("Stream #0", "")
-                #language = stream_info
-
-                # Check if the language is one of the desired ones (English or Spanish)
-                #if language in ["eng", "spa"]:
                 subtitle_streams.append(f"0:s:{stream_id}")
 
     return subtitle_streams
+
+
+def upload_to_ftp(local_file):
+    load_dotenv("config.env")
+
+    server = os.getenv("FTP_SERVER")
+    username = os.getenv("FTP_USERNAME")
+    password = os.getenv("FTP_PASSWORD")
+    remote_path = os.getenv("FTP_REMOTE_PATH")
+
+    try:
+        with ftplib.FTP(server) as ftp:
+            ftp.login(username, password)
+            ftp.cwd(remote_path)
+            with open(local_file, "rb") as file:
+                ftp.storbinary(f"STOR {os.path.basename(local_file)}", file)
+        print(f"Uploaded {local_file} to {server}/{remote_path}")
+    except Exception as e:
+        print(f"FTP upload failed: {e}")
+
 
 def convert_to_mp4(input_file):
     base, _ = os.path.splitext(input_file)
@@ -66,6 +85,9 @@ def convert_to_mp4(input_file):
     try:
         subprocess.run(command, check=True)
         print("Conversion successful!")
+
+        # Upload to my server using FTP
+        upload_to_ftp(output_file)
 
         # Optionally delete the original file after successful conversion
         # os.remove(input_file)
