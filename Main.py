@@ -5,6 +5,9 @@ import sys
 
 from dotenv import load_dotenv
 
+from UserInterface import ask_upload_confirmation, ask_delete_confirmation
+
+
 def get_subtitle_streams(input_file):
     # Run ffmpeg to get the subtitle streams
     command = [
@@ -105,16 +108,10 @@ def main():
     isDelete = False
 
     # Ask if you would like to upload the converted file to an FTP server
-
-    if True:
-        # If upload converted file -> Ask folder upload or file upload
-        if True:
-
-        # If upload converted file -> Ask delete original and converted file after successful upload
-        else:
-
-    else:
-    # If not upload converted file -> Ask delete the original file after successful conversion
+    isUpload = ask_upload_confirmation()
+    # If upload converted file -> Ask delete original and converted file after successful upload
+    # If not upload converted file -> Ask delete original file after successful upload
+    isDelete = ask_delete_confirmation()
 
     if len(sys.argv) < 2:
         folder = input("Enter the folder path to process: ")
@@ -142,14 +139,15 @@ def main():
                         # Optionally delete the original file after successful conversion
                         if isDelete:
                             os.remove(file_lower)
-                            os.remove(input_file)
-                            print(f"Deleted file: {input_file}")
+                            print(f"Deleted file: {file_lower}")
+                            os.remove(output_file)
+                            print(f"Deleted file: {output_file}")
 
                     else:
                         # Optionally delete the original file after successful conversion
                         if isDelete:
                             os.remove(file_lower)
-                            print(f"Deleted file: {input_file}")
+                            print(f"Deleted file: {file_lower}")
                 else:
                     print(f"Error converting {input_path}")
 
